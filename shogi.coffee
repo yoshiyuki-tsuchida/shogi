@@ -59,6 +59,9 @@ module.exports = (robot) ->
     msg.send "#{user}が集めた「ありがとう」は#{robot.brain.data[user]}個"
 
 
+# -----------------------------------------------------------
+# 新しい対戦を開始する
+# -----------------------------------------------------------
   robot.respond /shogi new/i, (msg) ->
     if play == false
       if request == false
@@ -73,6 +76,9 @@ module.exports = (robot) ->
       msg.send "▲#{sente}と△#{gote}が対戦中です。"
 
 
+# -----------------------------------------------------------
+# 対戦を受け付ける
+# -----------------------------------------------------------
   robot.respond /shogi accept/i, (msg) ->
     if play == false
       if request == false
@@ -88,6 +94,40 @@ module.exports = (robot) ->
       msg.send "▲#{sente}と△#{gote}が対戦中です。"
 
 
+# -----------------------------------------------------------
+# 現在の局面を見る
+# -----------------------------------------------------------
+  robot.respond /shogi bord/i, (msg) ->
+    url = convert(bord)
+    msg.send "http://sfenreader.appspot.com/sfen?sfen=#{url}%20b%20-%2011"
+    msg.send "▲#{sente}と△#{gote}が対戦中です。"
+
+
+# -----------------------------------------------------------
+# 指定の場所にある駒を見る（デバッグ用）
+# -----------------------------------------------------------
+  robot.respond /shogi check ([1-9])([1-9])/i, (msg) ->
+    origin =
+      "x" : msg.match[1]
+      "y" : msg.match[2]
+    kind_of_my_koma = bind["sente"]
+    msg.send "#{origin["x"]},#{origin["y"]}にある駒は・・・。"
+    bord_coordinate = convert_to_bord_coordinate(origin)
+    for koma_j, koma_e of kind_of_my_koma
+      if (bord[bord_coordinate["y"]][bord_coordinate["x"]] == koma_e)
+        msg.send "#{origin["x"]},#{origin["y"]}にある駒は#{koma_e}です。"
+
+# -----------------------------------------------------------
+# 現在の盤の状態を見る
+# -----------------------------------------------------------
+
+  robot.respond /shogi now/i, (msg) ->
+    url = convert(bord)
+    msg.send "http://sfenreader.appspot.com/sfen?sfen=#{url}%20b%20-%2011"
+
+# -----------------------------------------------------------
+# すべてを初期化する
+# -----------------------------------------------------------
   robot.respond /shogi init/i, (msg) ->
     play     = false
     request  = false
@@ -98,13 +138,28 @@ module.exports = (robot) ->
     gotemochi  = []
     url      = ""
     kifu     = []
+    bord     = [
+      ["l","n","s","g","k","g","s","n","l"],
+      [" ","r"," "," "," "," "," ","b"," "],
+      ["p","p","p","p","p","p","p","p","p"],
+      [" "," "," "," "," "," "," "," "," "],
+      [" "," "," "," "," "," "," "," "," "],
+      [" "," "," "," "," "," "," "," "," "],
+      ["P","P","P","P","P","P","P","P","P"],
+      [" ","B"," "," "," "," "," ","R"," "],
+      ["L","N","S","G","K","G","S","N","L"]
+    ]
     msg.send "対局を初期化しました。"
 
+# -----------------------------------------------------------
+# 盤上のデータをURLに変換する
+# -----------------------------------------------------------
   convert = (now_bord) ->
     url = []
     for line in now_bord
       counted_space_line = count_space(line)
       url.push(counted_space_line.join(""))
+    console.log "#{url.join('/')}"
     encodeURIComponent(url.join("/"))
 
   count_space = (line) ->
@@ -122,6 +177,76 @@ module.exports = (robot) ->
       counted_space_line.push(space_count)
     counted_space_line
 
-  robot.respond /test/i, (msg) ->
-    msg.send "#{url}"
+# -----------------------------------------------------------
+# 指し手を解析する
+# -----------------------------------------------------------
+  robot.respond /shogi ([1-9])([1-9])(.{1,2}) ([1-9])([1-9])(.{1,2})$/i, (msg) ->
+    origin =
+      "x" : msg.match[1]
+      "y" : msg.match[2]
+      "k" : msg.match[3]
+    destination =
+      "x" : msg.match[4]
+      "y" : msg.match[5]
+      "k" : msg.match[6]
+
+    if is_possible_moving(origin, destination, msg)
+      msg.send "#{msg.message.user.name}が指した手は、#{origin["x"]}#{origin["y"]}#{origin["k"]} -> #{destination["x"]}#{destination["y"]}#{destination["k"]}"
+      # 移動する
+      move(origin, destination)
+      # 持ち駒の処理
+      # 成か成らないか
+      url = convert(bord)
+      msg.send "http://sfenreader.appspot.com/sfen?sfen=#{url}%20b%20-%2011"
+    else
+      msg.send "もう一度どうぞ。"
+
+  is_possible_moving = (origin, destination, msg) ->
+    # 原点の駒と移動先の駒が同じかどうか
+    if (origin["k"] != destination["k"])
+      msg.send "移動先の駒が違います。その手は指せません。"
+      return false
+    # 存在するコマかどうかを判定する
+    kind_of_koma = bind['sente']
+    if !(kind_of_koma[origin["k"]])
+      msg.send "そのような駒の種類はありません。"
+      return false
+    # 原点にその駒があるかどうか
+    koma_str = bind["sente"][origin["k"]]
+    bord_coordinate = convert_to_bord_coordinate(origin)
+    if !(bord[bord_coordinate["y"]][bord_coordinate["x"]] == koma_str)
+      msg.send "そのような駒はその場所にありません。"
+      return false
+    # その駒の移動先に自分の駒がないか
+    kind_of_my_koma = bind["sente"]
+    bord_coordinate = convert_to_bord_coordinate(destination)
+    for koma_j, koma_e of kind_of_my_koma
+      if (bord[bord_coordinate["y"]][bord_coordinate["x"]] == koma_e)
+        msg.send "移動先に自分の駒があります。"
+        return false
+    # その駒がルールどおりに移動先にいけるか
+      # 駒のルールに沿っているか
+      # 通りぬけはできない
+    return true
+
+# -----------------------------------------------------------
+# 移動する
+# -----------------------------------------------------------
+
+  move = (origin, destination) ->
+    bord_coordinate = convert_to_bord_coordinate(origin)
+    bord[bord_coordinate["y"]][bord_coordinate["x"]] = " "
+    bord_coordinate = convert_to_bord_coordinate(destination)
+    bord[bord_coordinate["y"]][bord_coordinate["x"]] = bind["sente"][destination["k"]]
+
+# -----------------------------------------------------------
+# 指定座標をbord座標に変換する
+# -----------------------------------------------------------
+
+  convert_to_bord_coordinate = (coordinate) ->
+    bord_coordinate =
+      "x" : 10 - coordinate["x"] - 1
+      "y" : coordinate["y"] - 1
+    return bord_coordinate
+
 
