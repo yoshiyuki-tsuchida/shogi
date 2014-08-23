@@ -71,8 +71,7 @@ module.exports = (robot) ->
       else
         msg.send "#{sente}からの対戦要求があります。『at_grandma shogi accept』で対戦要求を受けます。"
     else
-      url = convert(bord)
-      msg.send "http://sfenreader.appspot.com/sfen?sfen=#{url}%20b%20-%2011"
+      print_bord(msg)
       msg.send "▲#{sente}と△#{gote}が対戦中です。"
 
 
@@ -89,8 +88,7 @@ module.exports = (robot) ->
         play    = true
         msg.send "▲#{sente}と△#{gote}の対戦。"
     else
-      url = convert(bord)
-      msg.send "http://sfenreader.appspot.com/sfen?sfen=#{url}%20b%20-%2011"
+      print_bord(msg)
       msg.send "▲#{sente}と△#{gote}が対戦中です。"
 
 
@@ -98,8 +96,7 @@ module.exports = (robot) ->
 # 現在の局面を見る
 # -----------------------------------------------------------
   robot.respond /shogi bord/i, (msg) ->
-    url = convert(bord)
-    msg.send "http://sfenreader.appspot.com/sfen?sfen=#{url}%20b%20-%2011"
+    print_bord(msg)
     msg.send "▲#{sente}と△#{gote}が対戦中です。"
 
 
@@ -107,23 +104,29 @@ module.exports = (robot) ->
 # 指定の場所にある駒を見る（デバッグ用）
 # -----------------------------------------------------------
   robot.respond /shogi check ([1-9])([1-9])/i, (msg) ->
+    teban = get_teban()
+    msg.send "手番は#{teban}です。"
     origin =
       "x" : msg.match[1]
       "y" : msg.match[2]
-    kind_of_my_koma = bind["sente"]
+    kind_of_my_koma = bind[teban]
     msg.send "#{origin["x"]},#{origin["y"]}にある駒は・・・。"
     bord_coordinate = convert_to_bord_coordinate(origin)
     for koma_j, koma_e of kind_of_my_koma
       if (bord[bord_coordinate["y"]][bord_coordinate["x"]] == koma_e)
         msg.send "#{origin["x"]},#{origin["y"]}にある駒は#{koma_e}です。"
+        msg.send "手数は#{tesuu}です。"
+        return
+      else
+        msg.send "ないですね。"
+        return
 
 # -----------------------------------------------------------
 # 現在の盤の状態を見る
 # -----------------------------------------------------------
 
   robot.respond /shogi now/i, (msg) ->
-    url = convert(bord)
-    msg.send "http://sfenreader.appspot.com/sfen?sfen=#{url}%20b%20-%2011"
+    print_bord(msg)
 
 # -----------------------------------------------------------
 # すべてを初期化する
@@ -196,29 +199,30 @@ module.exports = (robot) ->
       move(origin, destination)
       # 持ち駒の処理
       # 成か成らないか
-      url = convert(bord)
-      msg.send "http://sfenreader.appspot.com/sfen?sfen=#{url}%20b%20-%2011"
+      tesuu++
+      print_bord(msg)
     else
       msg.send "もう一度どうぞ。"
 
   is_possible_moving = (origin, destination, msg) ->
+    teban = get_teban()
     # 原点の駒と移動先の駒が同じかどうか
     if (origin["k"] != destination["k"])
       msg.send "移動先の駒が違います。その手は指せません。"
       return false
     # 存在するコマかどうかを判定する
-    kind_of_koma = bind['sente']
+    kind_of_koma = bind[teban]
     if !(kind_of_koma[origin["k"]])
       msg.send "そのような駒の種類はありません。"
       return false
     # 原点にその駒があるかどうか
-    koma_str = bind["sente"][origin["k"]]
+    koma_str = bind[teban][origin["k"]]
     bord_coordinate = convert_to_bord_coordinate(origin)
     if !(bord[bord_coordinate["y"]][bord_coordinate["x"]] == koma_str)
       msg.send "そのような駒はその場所にありません。"
       return false
     # その駒の移動先に自分の駒がないか
-    kind_of_my_koma = bind["sente"]
+    kind_of_my_koma = bind[teban]
     bord_coordinate = convert_to_bord_coordinate(destination)
     for koma_j, koma_e of kind_of_my_koma
       if (bord[bord_coordinate["y"]][bord_coordinate["x"]] == koma_e)
@@ -234,10 +238,30 @@ module.exports = (robot) ->
 # -----------------------------------------------------------
 
   move = (origin, destination) ->
+    teban = get_teban()
     bord_coordinate = convert_to_bord_coordinate(origin)
     bord[bord_coordinate["y"]][bord_coordinate["x"]] = " "
     bord_coordinate = convert_to_bord_coordinate(destination)
-    bord[bord_coordinate["y"]][bord_coordinate["x"]] = bind["sente"][destination["k"]]
+    bord[bord_coordinate["y"]][bord_coordinate["x"]] = bind[teban][destination["k"]]
+
+# -----------------------------------------------------------
+# 手番を返す
+# -----------------------------------------------------------
+
+  get_teban = () ->
+    if tesuu % 2 == 0
+      return "sente"
+    else
+      return "gote"
+    # return "sente"
+
+# -----------------------------------------------------------
+# 版を出力する
+# -----------------------------------------------------------
+
+  print_bord = (msg) ->
+    url = convert(bord)
+    msg.send "http://sfenreader.appspot.com/sfen?sfen=#{url}%20b%20-%20#{tesuu}"
 
 # -----------------------------------------------------------
 # 指定座標をbord座標に変換する
