@@ -7,6 +7,9 @@ module.exports = (robot) ->
 
   play     = false
   request  = false
+  player   =
+    "sente" : null
+    "gote"  : null
   sente    = null
   gote     = null
   tesuu    = 0
@@ -65,14 +68,14 @@ module.exports = (robot) ->
   robot.respond /shogi req/i, (msg) ->
     if play == false
       if request == false
-        sente = msg.message.user.name
+        player["sente"] = msg.message.user.name
         request = true
-        msg.send "#{sente}が先手。対戦相手待ち。"
+        msg.send "#{player["sente"]}が先手。対戦相手待ち。"
       else
-        msg.send "#{sente}からの対戦要求があります。『at_grandma shogi accept』で対戦要求を受けます。"
+        msg.send "#{player["sente"]}からの対戦要求があります。『at_grandma shogi ok』で対戦要求を受けます。"
     else
       print_bord(msg)
-      msg.send "▲#{sente}と△#{gote}が対戦中です。"
+      msg.send "▲#{player["sente"]}と△#{player["gote"]}が対戦中です。"
 
 
 # -----------------------------------------------------------
@@ -81,15 +84,15 @@ module.exports = (robot) ->
   robot.respond /shogi ok/i, (msg) ->
     if play == false
       if request == false
-        msg.send "対戦要求がありません。『at_grandma shogi new』で対戦要求を出せます。"
+        msg.send "対戦要求がありません。『at_grandma shogi req』で対戦要求を出せます。"
       else
-        gote = msg.message.user.name
+        player["gote"] = msg.message.user.name
         request = false
         play    = true
-        msg.send "▲#{sente}と△#{gote}の対戦。"
+        msg.send "▲#{player["sente"]}と△#{player["gote"]}の対戦。"
     else
       print_bord(msg)
-      msg.send "▲#{sente}と△#{gote}が対戦中です。"
+      msg.send "▲#{player["sente"]}と△#{player["gote"]}が対戦中です。"
 
 
 # -----------------------------------------------------------
@@ -97,7 +100,7 @@ module.exports = (robot) ->
 # -----------------------------------------------------------
   robot.respond /shogi bord/i, (msg) ->
     print_bord(msg)
-    msg.send "▲#{sente}と△#{gote}が対戦中です。"
+    msg.send "▲#{player["sente"]}と△#{player["gote"]}が対戦中です。"
 
 # -----------------------------------------------------------
 # （デバッグ）
@@ -137,6 +140,9 @@ module.exports = (robot) ->
 # すべてを初期化する
 # -----------------------------------------------------------
   robot.respond /shogi init/i, (msg) ->
+    if !(validate_user_name(msg))
+      msg.send "対戦中の▲#{player["sente"]}と△#{player["gote"]}しか操作できません。"
+      return
     play     = false
     request  = false
     sente    = null
@@ -187,6 +193,9 @@ module.exports = (robot) ->
 # 指し手を進める
 # -----------------------------------------------------------
   robot.respond /shogi ([1-9])([1-9])(.{1,2}) ([1-9])([1-9])(.{1,2})$/i, (msg) ->
+    if !(validate_user_name(msg))
+      msg.send "対戦中の▲#{player["sente"]}と△#{player["gote"]}しか操作できません。"
+      return
     origin =
       "x" : msg.match[1]
       "y" : msg.match[2]
@@ -279,7 +288,7 @@ module.exports = (robot) ->
   print_bord = (msg) ->
     url = convert(bord)
     mochigoma = get_convert_url_mochi()
-    msg.send "http://sfenreader.appspot.com/sfen?sfen=#{url}%20b%20#{mochigoma}%20#{tesuu}&lm=#{last}&sname=#{sente}&gname=#{gote}"
+    msg.send "http://sfenreader.appspot.com/sfen?sfen=#{url}%20b%20#{mochigoma}%20#{tesuu}&lm=#{last}&sname=#{player["sente"]}&gname=#{player["gote"]}"
 
 # -----------------------------------------------------------
 # 棋譜を出力する
@@ -345,4 +354,23 @@ module.exports = (robot) ->
           url_mochi.push(koma)
     url_mochi.join("")
 
-    # テスト
+# -----------------------------------------------------------
+# ユーザーネームバリデート
+# -----------------------------------------------------------
+
+  validate_user_name = (msg) ->
+    name = msg.message.user.name
+    teban = get_teban()
+    if teban == "sente"
+      if name == player["sente"]
+        return true
+      else
+        return false
+    else if teban == "gote"
+      if name == player["gote"]
+        return true
+      else
+        return false
+    else
+      return false
+
