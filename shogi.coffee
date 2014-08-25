@@ -10,8 +10,6 @@ module.exports = (robot) ->
   player   =
     "sente" : null
     "gote"  : null
-  sente    = null
-  gote     = null
   tesuu    = 0
   last     = 55
   mochi    = []
@@ -145,8 +143,9 @@ module.exports = (robot) ->
       return
     play     = false
     request  = false
-    sente    = null
-    gote     = null
+    player   =
+      "sente" : null
+      "gote"  : null
     tesuu    = 0
     mochi  = []
     url      = ""
@@ -192,7 +191,7 @@ module.exports = (robot) ->
 # -----------------------------------------------------------
 # 指し手を進める
 # -----------------------------------------------------------
-  robot.respond /shogi ([1-9])([1-9])(.{1,2}) ([1-9])([1-9])(.{1,2})$/i, (msg) ->
+  robot.respond /shogi ([0-9])([0-9])(.{1,2}) ([1-9])([1-9])(.{1,2})$/i, (msg) ->
     if !(validate_user_name(msg))
       msg.send "対戦中の▲#{player["sente"]}と△#{player["gote"]}しか操作できません。"
       return
@@ -221,6 +220,10 @@ module.exports = (robot) ->
 
   is_possible_moving = (origin, destination, msg) ->
     teban = get_teban()
+    # 片方の座標が0だったらfalse
+    if (origin["x"] == "0" && origin["y"] != "0") || (origin["x"] != "0" && origin["y"] == "0")
+      msg.send "その座標は存在しません。"
+      return false
     # 原点の駒と移動先の駒が同じかどうか
     if (origin["k"] != destination["k"])
       msg.send "移動先の駒が違います。その手は指せません。"
@@ -230,18 +233,30 @@ module.exports = (robot) ->
     if !(kind_of_koma[origin["k"]])
       msg.send "そのような駒の種類はありません。"
       return false
-    # 原点にその駒があるかどうか
-    koma_str = bind[teban][origin["k"]]
-    bord_coordinate = convert_to_bord_coordinate(origin)
-    if !(bord[bord_coordinate["y"]][bord_coordinate["x"]] == koma_str)
-      msg.send "そのような駒はその場所にありません。"
-      return false
     # その駒の移動先に自分の駒がないか
     kind_of_my_koma = bind[teban]
     bord_coordinate = convert_to_bord_coordinate(destination)
     for koma_j, koma_e of kind_of_my_koma
       if (bord[bord_coordinate["y"]][bord_coordinate["x"]] == koma_e)
         msg.send "移動先に自分の駒があります。"
+        return false
+    # 移動前のその場所に駒があるかどうか
+    if (origin["x"] == "0" && origin["y"] == "0")
+      # 持ち駒の場合
+      koma_str = bind[teban][origin["k"]]
+      is_exist = false
+      for k,koma_e of mochi
+        if (koma_str == koma_e)
+          is_exist = true
+      if !(is_exist)
+        msg.send "その駒は持ち駒の中にありません。"
+        return false
+    else
+      # 持ち駒じゃない場合
+      koma_str = bind[teban][origin["k"]]
+      bord_coordinate = convert_to_bord_coordinate(origin)
+      if !(bord[bord_coordinate["y"]][bord_coordinate["x"]] == koma_str)
+        msg.send "そのような駒はその場所にありません。"
         return false
     # その駒がルールどおりに移動先にいけるか
       # 駒のルールに沿っているか
@@ -254,8 +269,13 @@ module.exports = (robot) ->
 
   move = (origin, destination) ->
     teban = get_teban()
-    bord_coordinate = convert_to_bord_coordinate(origin)
-    bord[bord_coordinate["y"]][bord_coordinate["x"]] = " "
+    if (origin["x"] == "0" && origin["y"] == "0")
+      mochi.some((v, i) ->
+        if (v == bind[teban][origin["k"]])
+          mochi.splice(i,1))
+    else
+      bord_coordinate = convert_to_bord_coordinate(origin)
+      bord[bord_coordinate["y"]][bord_coordinate["x"]] = " "
     bord_coordinate = convert_to_bord_coordinate(destination)
     bord[bord_coordinate["y"]][bord_coordinate["x"]] = bind[teban][destination["k"]]
 
