@@ -5,6 +5,11 @@
 
 module.exports = (robot) ->
 
+
+# -----------------------------------------------------------
+# 初期設定
+# -----------------------------------------------------------
+
   play     = false
   request  = false
   player   =
@@ -47,22 +52,10 @@ module.exports = (robot) ->
       "玉" : "k"
 
 
-
-  robot.respond /(.+)\+\+$/i, (msg) ->
-    user = msg.match[1]
-
-    if not robot.brain.data[user]
-      robot.brain.data[user] = 0
-
-    robot.brain.data[user]++
-    robot.brain.save()
-
-    msg.send "#{user}が集めた「ありがとう」は#{robot.brain.data[user]}個"
-
-
 # -----------------------------------------------------------
-# 新しい対戦を開始する
+# 新しい対戦を要求する
 # -----------------------------------------------------------
+
   robot.respond /shogi req/i, (msg) ->
     if play == false
       if request == false
@@ -77,8 +70,9 @@ module.exports = (robot) ->
 
 
 # -----------------------------------------------------------
-# 対戦を受け付ける
+# 要求中の対戦を受け付ける
 # -----------------------------------------------------------
+
   robot.respond /shogi ok/i, (msg) ->
     if play == false
       if request == false
@@ -96,26 +90,27 @@ module.exports = (robot) ->
 # -----------------------------------------------------------
 # 現在の局面を見る
 # -----------------------------------------------------------
-  robot.respond /shogi bord/i, (msg) ->
-    print_bord(msg)
-    msg.send "▲#{player["sente"]}と△#{player["gote"]}が対戦中です。"
 
-# -----------------------------------------------------------
-# （デバッグ）
-# -----------------------------------------------------------
-  robot.respond /shogi mochi/i, (msg) ->
-    message = get_convert_url_mochi()
-    msg.send "#{message}"
+  robot.respond /shogi bord/i, (msg) ->
+    if play == false
+      msg.send "対戦は始まっていません。"
+    else
+      print_bord(msg)
+      msg.send "▲#{player["sente"]}と△#{player["gote"]}が対戦中です。"
+
 
 # -----------------------------------------------------------
 # 現在の棋譜を出力する
 # -----------------------------------------------------------
   robot.respond /shogi kifu/i, (msg) ->
     print_kifu(msg)
+    msg.send "直近で保存された、▲#{player["sente"]}と△#{player["gote"]}の棋譜です。"
+
 
 # -----------------------------------------------------------
 # 指定の場所にある駒を見る（デバッグ用）
 # -----------------------------------------------------------
+
   robot.respond /shogi check ([1-9])([1-9])/i, (msg) ->
     teban = get_teban()
     msg.send "手番は#{teban}です。"
@@ -137,9 +132,10 @@ module.exports = (robot) ->
 # -----------------------------------------------------------
 # すべてを初期化する
 # -----------------------------------------------------------
+
   robot.respond /shogi init/i, (msg) ->
     if !(validate_user_name(msg))
-      msg.send "対戦中の▲#{player["sente"]}と△#{player["gote"]}しか操作できません。"
+      msg.send "対戦中の▲#{player["sente"]}と△#{player["gote"]}しか初期化操作はできません。"
       return
     play     = false
     request  = false
@@ -163,34 +159,11 @@ module.exports = (robot) ->
     ]
     msg.send "対局を初期化しました。"
 
-# -----------------------------------------------------------
-# 盤上のデータをURLに変換する
-# -----------------------------------------------------------
-  convert = (now_bord) ->
-    url = []
-    for line in now_bord
-      counted_space_line = count_space(line)
-      url.push(counted_space_line.join(""))
-    encodeURIComponent(url.join("/"))
-
-  count_space = (line) ->
-    counted_space_line = []
-    space_count = 0
-    for element in line
-      if element == " "
-        space_count++
-      else
-        if space_count > 0
-          counted_space_line.push(space_count)
-          space_count = 0
-        counted_space_line.push(element)
-    if space_count > 0
-      counted_space_line.push(space_count)
-    counted_space_line
 
 # -----------------------------------------------------------
 # 指し手を進める
 # -----------------------------------------------------------
+
   robot.respond /shogi ([0-9])([0-9])(.{1,2}) ([1-9])([1-9])(.{1,2})$/i, (msg) ->
     if !(validate_user_name(msg))
       msg.send "対戦中の▲#{player["sente"]}と△#{player["gote"]}しか操作できません。"
@@ -205,7 +178,11 @@ module.exports = (robot) ->
       "k" : msg.match[6]
 
     if is_possible_moving(origin, destination, msg)
-      msg.send "#{msg.message.user.name}が指した手は、#{origin["x"]}#{origin["y"]}#{origin["k"]} -> #{destination["x"]}#{destination["y"]}#{destination["k"]}"
+      teban = get_teban()
+      if teban == "sente"
+        msg.send "▲#{player["sente"]}が指した手は、#{origin["x"]}#{origin["y"]}#{origin["k"]} -> #{destination["x"]}#{destination["y"]}#{destination["k"]}"
+      else
+        msg.send "△#{player["gote"]}が指した手は、#{origin["x"]}#{origin["y"]}#{origin["k"]} -> #{destination["x"]}#{destination["y"]}#{destination["k"]}"
       # 持ち駒の処理
       piece_in_hand(destination)
       # 移動する
@@ -218,6 +195,11 @@ module.exports = (robot) ->
     else
       msg.send "もう一度どうぞ。"
 
+
+# -----------------------------------------------------------
+# 移動可能かどうかのバリデーション
+# -----------------------------------------------------------
+
   is_possible_moving = (origin, destination, msg) ->
     teban = get_teban()
     # 片方の座標が0だったらfalse
@@ -226,12 +208,12 @@ module.exports = (robot) ->
       return false
     # 原点の駒と移動先の駒が同じかどうか
     if (origin["k"] != destination["k"])
-      msg.send "移動先の駒が違います。その手は指せません。"
+      msg.send "指定場所と移動先の駒が違います。その手は指せません。"
       return false
     # 存在するコマかどうかを判定する
     kind_of_koma = bind[teban]
     if !(kind_of_koma[origin["k"]])
-      msg.send "そのような駒の種類はありません。"
+      msg.send "そのような駒の種類は存在しません。"
       return false
     # その駒の移動先に自分の駒がないか
     kind_of_my_koma = bind[teban]
@@ -263,6 +245,7 @@ module.exports = (robot) ->
       # 通りぬけはできない
     return true
 
+
 # -----------------------------------------------------------
 # 移動する
 # -----------------------------------------------------------
@@ -279,6 +262,34 @@ module.exports = (robot) ->
     bord_coordinate = convert_to_bord_coordinate(destination)
     bord[bord_coordinate["y"]][bord_coordinate["x"]] = bind[teban][destination["k"]]
 
+
+# -----------------------------------------------------------
+# 盤上のデータをURLに変換する
+# -----------------------------------------------------------
+
+  convert = (now_bord) ->
+    url = []
+    for line in now_bord
+      counted_space_line = count_space(line)
+      url.push(counted_space_line.join(""))
+    encodeURIComponent(url.join("/"))
+
+  count_space = (line) ->
+    counted_space_line = []
+    space_count = 0
+    for element in line
+      if element == " "
+        space_count++
+      else
+        if space_count > 0
+          counted_space_line.push(space_count)
+          space_count = 0
+        counted_space_line.push(element)
+    if space_count > 0
+      counted_space_line.push(space_count)
+    counted_space_line
+
+
 # -----------------------------------------------------------
 # 手番を返す
 # -----------------------------------------------------------
@@ -288,6 +299,7 @@ module.exports = (robot) ->
       return "sente"
     else
       return "gote"
+
 
 # -----------------------------------------------------------
 # 棋譜を記録する
@@ -309,6 +321,7 @@ module.exports = (robot) ->
     url = convert(bord)
     mochigoma = get_convert_url_mochi()
     msg.send "http://sfenreader.appspot.com/sfen?sfen=#{url}%20b%20#{mochigoma}%20#{tesuu}&lm=#{last}&sname=#{player["sente"]}&gname=#{player["gote"]}"
+
 
 # -----------------------------------------------------------
 # 棋譜を出力する
@@ -344,7 +357,6 @@ module.exports = (robot) ->
       aite_teban = "gote"
     else
       aite_teban = "sente"
-
     # その場所に相手の駒があるか
     kind_of_aite_koma = bind[aite_teban]
     kind_of_my_koma = bind[teban]
@@ -359,6 +371,7 @@ module.exports = (robot) ->
 # -----------------------------------------------------------
 # 持ち駒のurl変換
 # -----------------------------------------------------------
+
   get_convert_url_mochi = () ->
     if mochi.length <= 0
       return "-"
@@ -373,6 +386,7 @@ module.exports = (robot) ->
           url_mochi.push(count_koma)
           url_mochi.push(koma)
     url_mochi.join("")
+
 
 # -----------------------------------------------------------
 # ユーザーネームバリデート
