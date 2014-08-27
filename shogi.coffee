@@ -34,22 +34,44 @@ module.exports = (robot) ->
   bind =
     "sente" :
       "歩" : "P"
+      "と" : "+P"
       "香" : "L"
+      "杏" : "+L"
       "桂" : "N"
+      "圭" : "+N"
       "銀" : "S"
+      "全" : "+S"
       "金" : "G"
       "角" : "B"
+      "馬" : "+B"
       "飛" : "R"
+      "龍" : "+R"
       "玉" : "K"
     "gote" :
       "歩" : "p"
+      "と" : "+p"
       "香" : "l"
+      "杏" : "+l"
       "桂" : "n"
+      "圭" : "+n"
       "銀" : "s"
+      "全" : "+s"
       "金" : "g"
       "角" : "b"
+      "馬" : "+b"
       "飛" : "r"
+      "龍" : "+r"
       "玉" : "k"
+
+
+# -----------------------------------------------------------
+# LT end
+# -----------------------------------------------------------
+
+  robot.respond /lt end/i, (msg) ->
+    msg.send "ご清聴ありがとうございました。"
+    msg.send "http://cdn-ak.f.st-hatena.com/images/fotolife/y/yotsuya_step/20130326/20130326011914.jpg"
+    msg.send "また来週も見て下さいね！"
 
 
 # -----------------------------------------------------------
@@ -61,12 +83,24 @@ module.exports = (robot) ->
       if request == false
         player["sente"] = msg.message.user.name
         request = true
-        msg.send "#{player["sente"]}が先手。対戦相手待ち。"
+        random_message([
+          "#{player["sente"]}が先手ね。対戦相手を待っているわよ。",
+          "#{player["sente"]}が先手ね。がんばってね。",
+          "#{player["sente"]}が先手ね。誰が相手なのかしらねぇ。",
+        ], msg)
       else
-        msg.send "#{player["sente"]}からの対戦要求があります。『at_grandma shogi ok』で対戦要求を受けます。"
+        random_message([
+          "#{player["sente"]}から呼ばれているわ。『at_grandma shogi ok』で対戦を受けるわよ。",
+          "#{player["sente"]}が対戦したいそうよ。『at_grandma shogi ok』で相手をしてやってちょうだい。",
+          "#{player["sente"]}がうずうずして待ってるわ。『at_grandma shogi ok』で遊んであげてね。",
+        ], msg)
     else
       print_bord(msg)
-      msg.send "▲#{player["sente"]}と△#{player["gote"]}が対戦中です。"
+      random_message([
+        "▲#{player["sente"]}と△#{player["gote"]}が対戦中ね。",
+        "▲#{player["sente"]}と△#{player["gote"]}の対戦がまだ終わってないわ。",
+        "▲#{player["sente"]}と△#{player["gote"]}が白熱しているわねぇ。",
+      ], msg)
 
 
 # -----------------------------------------------------------
@@ -76,15 +110,27 @@ module.exports = (robot) ->
   robot.respond /shogi ok/i, (msg) ->
     if play == false
       if request == false
-        msg.send "対戦要求がありません。『at_grandma shogi req』で対戦要求を出せます。"
+        random_message([
+          "まだ誰も来てないわ。『at_grandma shogi req』で相手を待てるわよ。",
+          "あなた一人ねぇ。『at_grandma shogi req』で誰かを誘いましょう",
+          "あなたから誰かを誘ってちょうだい。『at_grandma shogi req』で待ちましょう。",
+        ], msg)
       else
         player["gote"] = msg.message.user.name
         request = false
         play    = true
-        msg.send "▲#{player["sente"]}と△#{player["gote"]}の対戦。"
+        random_message([
+          "対戦相手が決まったわ。▲#{player["sente"]}と△#{player["gote"]}の対戦中ね。",
+          "▲#{player["sente"]}と△#{player["gote"]}の試合よ。頑張ってね。",
+          "▲#{player["sente"]}と△#{player["gote"]}が対戦するらしいわ。。みんな集まって〜！",
+        ], msg)
     else
       print_bord(msg)
-      msg.send "▲#{player["sente"]}と△#{player["gote"]}が対戦中です。"
+      random_message([
+        "▲#{player["sente"]}と△#{player["gote"]}が対戦中ね。",
+        "▲#{player["sente"]}と△#{player["gote"]}の対戦がまだ終わってないわ。",
+        "▲#{player["sente"]}と△#{player["gote"]}が白熱しているわねぇ。",
+      ], msg)
 
 
 # -----------------------------------------------------------
@@ -93,10 +139,18 @@ module.exports = (robot) ->
 
   robot.respond /shogi bord/i, (msg) ->
     if play == false
-      msg.send "対戦は始まっていません。"
+      random_message([
+        "まだ誰も来ていないみたい。",
+        "対戦は始まっていないわ。",
+        "席は空いているわよ。対局してみたらどう？",
+      ], msg)
     else
       print_bord(msg)
-      msg.send "▲#{player["sente"]}と△#{player["gote"]}が対戦中です。"
+      random_message([
+        "▲#{player["sente"]}と△#{player["gote"]}が対戦中ね。あなたならどっち持ち？",
+        "▲#{player["sente"]}と△#{player["gote"]}の対戦がまだ終わってないわ。",
+        "▲#{player["sente"]}と△#{player["gote"]}が白熱しているわねぇ。",
+      ], msg)
 
 
 # -----------------------------------------------------------
@@ -104,30 +158,35 @@ module.exports = (robot) ->
 # -----------------------------------------------------------
   robot.respond /shogi kifu/i, (msg) ->
     print_kifu(msg)
-    msg.send "直近で保存された、▲#{player["sente"]}と△#{player["gote"]}の棋譜です。"
+    random_message([
+      "現在の棋譜よ。▲#{player["sente"]}と△#{player["gote"]}の対戦ね。",
+      "▲#{player["sente"]}と△#{player["gote"]}の棋譜よ。目隠し将棋で追ってみてね。",
+      "▲#{player["sente"]}と△#{player["gote"]}の素晴らしい棋譜ねぇ。",
+    ], msg)
+    "直近で保存された、▲#{player["sente"]}と△#{player["gote"]}の棋譜です。"
 
 
 # -----------------------------------------------------------
 # 指定の場所にある駒を見る（デバッグ用）
 # -----------------------------------------------------------
 
-  robot.respond /shogi check ([1-9])([1-9])/i, (msg) ->
-    teban = get_teban()
-    msg.send "手番は#{teban}です。"
-    origin =
-      "x" : msg.match[1]
-      "y" : msg.match[2]
-    kind_of_my_koma = bind[teban]
-    msg.send "#{origin["x"]},#{origin["y"]}にある駒は・・・。"
-    bord_coordinate = convert_to_bord_coordinate(origin)
-    for koma_j, koma_e of kind_of_my_koma
-      if (bord[bord_coordinate["y"]][bord_coordinate["x"]] == koma_e)
-        msg.send "#{origin["x"]},#{origin["y"]}にある駒は#{koma_e}です。"
-        msg.send "手数は#{tesuu}です。"
-        return
-      else
-        msg.send "ないですね。"
-        return
+  # robot.respond /shogi check ([1-9])([1-9])/i, (msg) ->
+    # teban = get_teban()
+    # msg.send "手番は#{teban}です。"
+    # origin =
+      # "x" : msg.match[1]
+      # "y" : msg.match[2]
+    # kind_of_my_koma = bind[teban]
+    # msg.send "#{origin["x"]},#{origin["y"]}にある駒は・・・。"
+    # bord_coordinate = convert_to_bord_coordinate(origin)
+    # for koma_j, koma_e of kind_of_my_koma
+      # if (bord[bord_coordinate["y"]][bord_coordinate["x"]] == koma_e)
+        # msg.send "#{origin["x"]},#{origin["y"]}にある駒は#{koma_e}です。"
+        # msg.send "手数は#{tesuu}です。"
+        # return
+      # else
+        # msg.send "ないですね。"
+        # return
 
 # -----------------------------------------------------------
 # すべてを初期化する
@@ -135,7 +194,11 @@ module.exports = (robot) ->
 
   robot.respond /shogi init/i, (msg) ->
     if !(validate_user_name(msg))
-      msg.send "対戦中の▲#{player["sente"]}と△#{player["gote"]}しか初期化操作はできません。"
+      random_message([
+        "こらカツオ！！この操作は、対戦中の▲#{player["sente"]}と△#{player["gote"]}しかできないのよ！",
+        "タラちゃ〜ん。これは対戦中の▲#{player["sente"]}と△#{player["gote"]}しかできないの。ごめんねぇ。",
+        "サザエ！あんたは、対戦中の▲#{player["sente"]}と△#{player["gote"]}しかできないって知ってるでしょ！",
+      ], msg)
       return
     play     = false
     request  = false
@@ -157,16 +220,20 @@ module.exports = (robot) ->
       [" ","B"," "," "," "," "," ","R"," "],
       ["L","N","S","G","K","G","S","N","L"]
     ]
-    msg.send "対局を初期化しました。"
+    msg.send "すべて元に戻しましたよ。"
 
 
 # -----------------------------------------------------------
 # 指し手を進める
 # -----------------------------------------------------------
 
-  robot.respond /shogi ([0-9])([0-9])(.{1,2}) ([1-9])([1-9])(.{1,2})$/i, (msg) ->
+  robot.respond /shogi ([0-9])([0-9])(.{1,2}) ([1-9])([1-9])(.)(|成)$/i, (msg) ->
     if !(validate_user_name(msg))
-      msg.send "対戦中の▲#{player["sente"]}と△#{player["gote"]}しか操作できません。"
+      random_message([
+        "こらカツオ！！この操作は、対戦中の▲#{player["sente"]}と△#{player["gote"]}しかできないのよ！",
+        "タラちゃ〜ん。これは対戦中の▲#{player["sente"]}と△#{player["gote"]}しかできないの。ごめんねぇ。",
+        "サザエ！あんたは、対戦中の▲#{player["sente"]}と△#{player["gote"]}しかできないって知ってるでしょ！",
+      ], msg)
       return
     origin =
       "x" : msg.match[1]
@@ -176,13 +243,22 @@ module.exports = (robot) ->
       "x" : msg.match[4]
       "y" : msg.match[5]
       "k" : msg.match[6]
+      "n" : msg.match[7]
 
     if is_possible_moving(origin, destination, msg)
       teban = get_teban()
       if teban == "sente"
-        msg.send "▲#{player["sente"]}が指した手は、#{origin["x"]}#{origin["y"]}#{origin["k"]} -> #{destination["x"]}#{destination["y"]}#{destination["k"]}"
+        random_message([
+          "▲#{player["sente"]}が指した手は、#{origin["x"]}#{origin["y"]}#{origin["k"]} -> #{destination["x"]}#{destination["y"]}#{destination["k"]}#{destination["n"]}ね。",
+          "あら、そんな手があったのねぇ。#{origin["x"]}#{origin["y"]}#{origin["k"]} -> #{destination["x"]}#{destination["y"]}#{destination["k"]}#{destination["n"]}",
+          "あたしは読んでたわよ。#{origin["x"]}#{origin["y"]}#{origin["k"]} -> #{destination["x"]}#{destination["y"]}#{destination["k"]}#{destination["n"]}",
+        ], msg)
       else
-        msg.send "△#{player["gote"]}が指した手は、#{origin["x"]}#{origin["y"]}#{origin["k"]} -> #{destination["x"]}#{destination["y"]}#{destination["k"]}"
+        random_message([
+          "△#{player["sente"]}が指した手は、#{origin["x"]}#{origin["y"]}#{origin["k"]} -> #{destination["x"]}#{destination["y"]}#{destination["k"]}#{destination["n"]}ね。",
+          "それは気づかなかったわぁ！。#{origin["x"]}#{origin["y"]}#{origin["k"]} -> #{destination["x"]}#{destination["y"]}#{destination["k"]}#{destination["n"]}",
+          "ちょっとわけがわからないねぇ。#{origin["x"]}#{origin["y"]}#{origin["k"]} -> #{destination["x"]}#{destination["y"]}#{destination["k"]}#{destination["n"]}",
+        ], msg)
       # 持ち駒の処理
       piece_in_hand(destination)
       # 移動する
@@ -193,7 +269,11 @@ module.exports = (robot) ->
       tesuu++
       print_bord(msg)
     else
-      msg.send "もう一度どうぞ。"
+      random_message([
+        "やり直してちょうだい。",
+        "もう一度打ち直してね。",
+        "もう一度よ。どこにするのかしら？",
+      ], msg)
 
 
 # -----------------------------------------------------------
@@ -202,25 +282,43 @@ module.exports = (robot) ->
 
   is_possible_moving = (origin, destination, msg) ->
     teban = get_teban()
+    # 成れない駒だったら弾く
+    if (destination["n"] == "成") && (
+        destination["k"] == "と" ||
+        destination["k"] == "杏" ||
+        destination["k"] == "圭" ||
+        destination["k"] == "全" ||
+        destination["k"] == "馬" ||
+        destination["k"] == "龍" ||
+        destination["k"] == "金" ||
+        destination["k"] == "玉")
+      msg.send "その駒は成れないわ。"
+      return false
+    # その場所で成れない
+    bord_coordinate = convert_to_bord_coordinate(destination)
+    if (destination["n"] == "成") && (4 <= bord_coordinate["y"] && bord_coordinate["y"] <= 6)
+      ##### ちょっとこの実装だと動作しない
+      msg.send "その位置では成れないわ。"
+      return false
     # 片方の座標が0だったらfalse
     if (origin["x"] == "0" && origin["y"] != "0") || (origin["x"] != "0" && origin["y"] == "0")
-      msg.send "その座標は存在しません。"
+      msg.send "その場所は盤面上には存在しないのよ〜。"
       return false
     # 原点の駒と移動先の駒が同じかどうか
     if (origin["k"] != destination["k"])
-      msg.send "指定場所と移動先の駒が違います。その手は指せません。"
+      msg.send "持った駒と打つ駒が違うわね。"
       return false
     # 存在するコマかどうかを判定する
     kind_of_koma = bind[teban]
     if !(kind_of_koma[origin["k"]])
-      msg.send "そのような駒の種類は存在しません。"
+      msg.send "そんな駒は存在しないでしょ？"
       return false
     # その駒の移動先に自分の駒がないか
     kind_of_my_koma = bind[teban]
     bord_coordinate = convert_to_bord_coordinate(destination)
     for koma_j, koma_e of kind_of_my_koma
       if (bord[bord_coordinate["y"]][bord_coordinate["x"]] == koma_e)
-        msg.send "移動先に自分の駒があります。"
+        msg.send "打つところに自分の駒があるわよ？"
         return false
     # 移動前のその場所に駒があるかどうか
     if (origin["x"] == "0" && origin["y"] == "0")
@@ -231,14 +329,14 @@ module.exports = (robot) ->
         if (koma_str == koma_e)
           is_exist = true
       if !(is_exist)
-        msg.send "その駒は持ち駒の中にありません。"
+        msg.send "そんな持ち駒は見当たらないわねぇ。"
         return false
     else
       # 持ち駒じゃない場合
       koma_str = bind[teban][origin["k"]]
       bord_coordinate = convert_to_bord_coordinate(origin)
       if !(bord[bord_coordinate["y"]][bord_coordinate["x"]] == koma_str)
-        msg.send "そのような駒はその場所にありません。"
+        msg.send "そこにある駒は違うものじゃない？"
         return false
     # その駒がルールどおりに移動先にいけるか
       # 駒のルールに沿っているか
@@ -260,7 +358,10 @@ module.exports = (robot) ->
       bord_coordinate = convert_to_bord_coordinate(origin)
       bord[bord_coordinate["y"]][bord_coordinate["x"]] = " "
     bord_coordinate = convert_to_bord_coordinate(destination)
-    bord[bord_coordinate["y"]][bord_coordinate["x"]] = bind[teban][destination["k"]]
+    if destination["n"] == "成"
+      bord[bord_coordinate["y"]][bord_coordinate["x"]] = "+" + bind[teban][destination["k"]]
+    else
+      bord[bord_coordinate["y"]][bord_coordinate["x"]] = bind[teban][destination["k"]]
 
 
 # -----------------------------------------------------------
@@ -407,4 +508,13 @@ module.exports = (robot) ->
         return false
     else
       return false
+
+# -----------------------------------------------------------
+# ランダムでメッセージを返す
+# -----------------------------------------------------------
+
+  random_message = (message_array, msg) ->
+    num = message_array.length
+    random_key = Math.floor(Math.random() * num)
+    msg.send message_array[random_key]
 
