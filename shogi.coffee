@@ -71,8 +71,60 @@ module.exports = (robot) ->
   robot.respond /lt end/i, (msg) ->
     msg.send "ご清聴ありがとうございました。"
     msg.send "http://cdn-ak.f.st-hatena.com/images/fotolife/y/yotsuya_step/20130326/20130326011914.jpg"
-    msg.send "また来週も見て下さいね！"
+    msg.send "来週もまた見てくださいね！"
 
+
+# -----------------------------------------------------------
+# help
+# -----------------------------------------------------------
+
+  robot.respond /help$/i, (msg) ->
+    msg.send """
+```
+
+  ---------------------------------------------
+     Shogi on Slack Bot 'at_grandma' ver 0.1
+  ---------------------------------------------
+
+at_grandma commands are:
+
+   shogi <command>
+
+      - req
+              対戦リクエストを発信する
+
+      - ok
+              対戦リクエストを受け付ける
+
+      - bord
+              現在の盤面情報を表示する
+
+      - kifu
+              直近の棋譜を表示する
+
+      - init
+              すべてを初期化する
+
+      - <持つ駒> <打つ駒>
+              動かしたい駒を持って、指定の場所に打つ
+              ex1) at_grandma shogi 77歩 76歩
+              ex2) at_grandma shogi 74歩 73歩成 （成る場合は「成」をつける）
+              ex3) at_grandma shogi 00金 52金   （持ち駒は00指定）
+
+      - help
+              最善手っぽいものを教えてくれる
+
+
+   help
+         このhelp
+
+
+使える駒：
+
+      歩　と　香　杏　桂　圭　銀　全　金　角　馬　飛　龍　玉
+
+```
+"""
 
 # -----------------------------------------------------------
 # 新しい対戦を要求する
@@ -157,13 +209,19 @@ module.exports = (robot) ->
 # 現在の棋譜を出力する
 # -----------------------------------------------------------
   robot.respond /shogi kifu/i, (msg) ->
-    print_kifu(msg)
-    random_message([
-      "現在の棋譜よ。▲#{player["sente"]}と△#{player["gote"]}の対戦ね。",
-      "▲#{player["sente"]}と△#{player["gote"]}の棋譜よ。目隠し将棋で追ってみてね。",
-      "▲#{player["sente"]}と△#{player["gote"]}の素晴らしい棋譜ねぇ。",
-    ], msg)
-    "直近で保存された、▲#{player["sente"]}と△#{player["gote"]}の棋譜です。"
+    if play == false
+      random_message([
+        "まだ誰も来ていないみたい。",
+        "対戦は始まっていないわ。",
+        "席は空いているわよ。対局してみたらどう？",
+      ], msg)
+    else
+      print_kifu(msg)
+      random_message([
+        "現在の棋譜よ。▲#{player["sente"]}と△#{player["gote"]}の対戦ね。",
+        "▲#{player["sente"]}と△#{player["gote"]}の棋譜よ。目隠し将棋で追ってみてね。",
+        "▲#{player["sente"]}と△#{player["gote"]}の素晴らしい棋譜ねぇ。",
+      ], msg)
 
 
 # -----------------------------------------------------------
@@ -195,9 +253,9 @@ module.exports = (robot) ->
   robot.respond /shogi init/i, (msg) ->
     if !(validate_user_name(msg))
       random_message([
-        "こらカツオ！！この操作は、対戦中の▲#{player["sente"]}と△#{player["gote"]}しかできないのよ！",
-        "タラちゃ〜ん。これは対戦中の▲#{player["sente"]}と△#{player["gote"]}しかできないの。ごめんねぇ。",
-        "サザエ！あんたは、対戦中の▲#{player["sente"]}と△#{player["gote"]}しかできないって知ってるでしょ！",
+        "この操作は、対戦中の▲#{player["sente"]}と△#{player["gote"]}しかできないのよ。",
+        "これは対戦中の▲#{player["sente"]}と△#{player["gote"]}しかできないの。ごめんねぇ。",
+        "対戦中の▲#{player["sente"]}と△#{player["gote"]}しかこの操作はできないの。",
       ], msg)
       return
     play     = false
@@ -273,6 +331,38 @@ module.exports = (robot) ->
         "やり直してちょうだい。",
         "もう一度打ち直してね。",
         "もう一度よ。どこにするのかしら？",
+      ], msg)
+
+
+# -----------------------------------------------------------
+# 勝手に何か言ってくれる
+# -----------------------------------------------------------
+
+  robot.respond /shogi help/i, (msg) ->
+    if play == false
+      random_message([
+        "まだ誰も来ていないみたい。",
+        "対戦は始まっていないわ。",
+        "席は空いているわよ。対局してみたらどう？",
+      ], msg)
+    else
+      random_x = Math.floor(Math.random() * 9) + 1
+      random_y = Math.floor(Math.random() * 9) + 1
+      random_message([
+        "#{random_x}#{random_y}歩 がいいんじゃないかしら。",
+        "#{random_x}#{random_y}と が最善手ね。",
+        "#{random_x}#{random_y}香 がいいんじゃないかしら。",
+        "#{random_x}#{random_y}杏 だと思うわ。",
+        "#{random_x}#{random_y}桂 がいいんじゃないかしら。",
+        "#{random_x}#{random_y}圭 なんてどうかしら。",
+        "#{random_x}#{random_y}銀 しかないでしょう！",
+        "#{random_x}#{random_y}全 がいいんじゃないかしら。",
+        "#{random_x}#{random_y}金 がいいと思うわ。",
+        "#{random_x}#{random_y}角 がいいんじゃないかしら。",
+        "#{random_x}#{random_y}馬 なんて妙手じゃないかしら。",
+        "#{random_x}#{random_y}飛 がいいんじゃないかしら。",
+        "#{random_x}#{random_y}龍 ひとつね。",
+        "#{random_x}#{random_y}玉 でしょう！。",
       ], msg)
 
 
