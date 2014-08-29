@@ -20,7 +20,7 @@ module.exports = (robot) ->
   mochi    = []
   url      = ""
   kifu     = []
-  bord     = [
+  board     = [
     ["l","n","s","g","k","g","s","n","l"],
     [" ","r"," "," "," "," "," ","b"," "],
     ["p","p","p","p","p","p","p","p","p"],
@@ -96,7 +96,7 @@ at_grandma commands are:
       - ok
               対戦リクエストを受け付ける
 
-      - bord
+      - board
               現在の盤面情報を表示する
 
       - kifu
@@ -147,7 +147,7 @@ at_grandma commands are:
           "#{player["sente"]}がうずうずして待ってるわ。『at_grandma shogi ok』で遊んであげてね。",
         ], msg)
     else
-      print_bord(msg)
+      print_board(msg)
       random_message([
         "▲#{player["sente"]}と△#{player["gote"]}が対戦中ね。",
         "▲#{player["sente"]}と△#{player["gote"]}の対戦がまだ終わってないわ。",
@@ -177,7 +177,7 @@ at_grandma commands are:
           "▲#{player["sente"]}と△#{player["gote"]}が対戦するらしいわ。。みんな集まって〜！",
         ], msg)
     else
-      print_bord(msg)
+      print_board(msg)
       random_message([
         "▲#{player["sente"]}と△#{player["gote"]}が対戦中ね。",
         "▲#{player["sente"]}と△#{player["gote"]}の対戦がまだ終わってないわ。",
@@ -189,7 +189,7 @@ at_grandma commands are:
 # 現在の局面を見る
 # -----------------------------------------------------------
 
-  robot.respond /shogi bord/i, (msg) ->
+  robot.respond /shogi board/i, (msg) ->
     if play == false
       random_message([
         "まだ誰も来ていないみたい。",
@@ -197,7 +197,7 @@ at_grandma commands are:
         "席は空いているわよ。対局してみたらどう？",
       ], msg)
     else
-      print_bord(msg)
+      print_board(msg)
       random_message([
         "▲#{player["sente"]}と△#{player["gote"]}が対戦中ね。あなたならどっち持ち？",
         "▲#{player["sente"]}と△#{player["gote"]}の対戦がまだ終わってないわ。",
@@ -236,9 +236,9 @@ at_grandma commands are:
       # "y" : msg.match[2]
     # kind_of_my_koma = bind[teban]
     # msg.send "#{origin["x"]},#{origin["y"]}にある駒は・・・。"
-    # bord_coordinate = convert_to_bord_coordinate(origin)
+    # board_coordinate = convert_to_board_coordinate(origin)
     # for koma_j, koma_e of kind_of_my_koma
-      # if (bord[bord_coordinate["y"]][bord_coordinate["x"]] == koma_e)
+      # if (board[board_coordinate["y"]][board_coordinate["x"]] == koma_e)
         # msg.send "#{origin["x"]},#{origin["y"]}にある駒は#{koma_e}です。"
         # msg.send "手数は#{tesuu}です。"
         # return
@@ -267,7 +267,7 @@ at_grandma commands are:
     mochi  = []
     url      = ""
     kifu     = []
-    bord     = [
+    board     = [
       ["l","n","s","g","k","g","s","n","l"],
       [" ","r"," "," "," "," "," ","b"," "],
       ["p","p","p","p","p","p","p","p","p"],
@@ -288,9 +288,9 @@ at_grandma commands are:
   robot.respond /shogi ([0-9])([0-9])(.{1,2}) ([1-9])([1-9])(.)(|成)$/i, (msg) ->
     if !(validate_user_name(msg))
       random_message([
-        "こらカツオ！！この操作は、対戦中の▲#{player["sente"]}と△#{player["gote"]}しかできないのよ！",
-        "タラちゃ〜ん。これは対戦中の▲#{player["sente"]}と△#{player["gote"]}しかできないの。ごめんねぇ。",
-        "サザエ！あんたは、対戦中の▲#{player["sente"]}と△#{player["gote"]}しかできないって知ってるでしょ！",
+        "この操作は、対戦中の▲#{player["sente"]}と△#{player["gote"]}しかできないのよ。",
+        "これは対戦中の▲#{player["sente"]}と△#{player["gote"]}しかできないの。ごめんねぇ。",
+        "対戦中の▲#{player["sente"]}と△#{player["gote"]}しかこの操作はできないの。",
       ], msg)
       return
     origin =
@@ -325,7 +325,7 @@ at_grandma commands are:
       kifu.push(kifu_logger(destination))
       last = "#{destination["x"]}#{destination["y"]}"
       tesuu++
-      print_bord(msg)
+      print_board(msg)
     else
       random_message([
         "やり直してちょうだい。",
@@ -385,8 +385,8 @@ at_grandma commands are:
       msg.send "その駒は成れないわ。"
       return false
     # その場所で成れない
-    bord_coordinate = convert_to_bord_coordinate(destination)
-    if (destination["n"] == "成") && (4 <= bord_coordinate["y"] && bord_coordinate["y"] <= 6)
+    board_coordinate = convert_to_board_coordinate(destination)
+    if (destination["n"] == "成") && (4 <= board_coordinate["y"] && board_coordinate["y"] <= 6)
       ##### ちょっとこの実装だと動作しない
       msg.send "その位置では成れないわ。"
       return false
@@ -405,9 +405,9 @@ at_grandma commands are:
       return false
     # その駒の移動先に自分の駒がないか
     kind_of_my_koma = bind[teban]
-    bord_coordinate = convert_to_bord_coordinate(destination)
+    board_coordinate = convert_to_board_coordinate(destination)
     for koma_j, koma_e of kind_of_my_koma
-      if (bord[bord_coordinate["y"]][bord_coordinate["x"]] == koma_e)
+      if (board[board_coordinate["y"]][board_coordinate["x"]] == koma_e)
         msg.send "打つところに自分の駒があるわよ？"
         return false
     # 移動前のその場所に駒があるかどうか
@@ -424,8 +424,8 @@ at_grandma commands are:
     else
       # 持ち駒じゃない場合
       koma_str = bind[teban][origin["k"]]
-      bord_coordinate = convert_to_bord_coordinate(origin)
-      if !(bord[bord_coordinate["y"]][bord_coordinate["x"]] == koma_str)
+      board_coordinate = convert_to_board_coordinate(origin)
+      if !(board[board_coordinate["y"]][board_coordinate["x"]] == koma_str)
         msg.send "そこにある駒は違うものじゃない？"
         return false
     # その駒がルールどおりに移動先にいけるか
@@ -445,22 +445,22 @@ at_grandma commands are:
         if (v == bind[teban][origin["k"]])
           mochi.splice(i,1))
     else
-      bord_coordinate = convert_to_bord_coordinate(origin)
-      bord[bord_coordinate["y"]][bord_coordinate["x"]] = " "
-    bord_coordinate = convert_to_bord_coordinate(destination)
+      board_coordinate = convert_to_board_coordinate(origin)
+      board[board_coordinate["y"]][board_coordinate["x"]] = " "
+    board_coordinate = convert_to_board_coordinate(destination)
     if destination["n"] == "成"
-      bord[bord_coordinate["y"]][bord_coordinate["x"]] = "+" + bind[teban][destination["k"]]
+      board[board_coordinate["y"]][board_coordinate["x"]] = "+" + bind[teban][destination["k"]]
     else
-      bord[bord_coordinate["y"]][bord_coordinate["x"]] = bind[teban][destination["k"]]
+      board[board_coordinate["y"]][board_coordinate["x"]] = bind[teban][destination["k"]]
 
 
 # -----------------------------------------------------------
 # 盤上のデータをURLに変換する
 # -----------------------------------------------------------
 
-  convert = (now_bord) ->
+  convert = (now_board) ->
     url = []
-    for line in now_bord
+    for line in now_board
       counted_space_line = count_space(line)
       url.push(counted_space_line.join(""))
     encodeURIComponent(url.join("/"))
@@ -508,8 +508,8 @@ at_grandma commands are:
 # 盤上を出力する
 # -----------------------------------------------------------
 
-  print_bord = (msg) ->
-    url = convert(bord)
+  print_board = (msg) ->
+    url = convert(board)
     mochigoma = get_convert_url_mochi()
     msg.send "http://sfenreader.appspot.com/sfen?sfen=#{url}%20b%20#{mochigoma}%20#{tesuu}&lm=#{last}&sname=#{player["sente"]}&gname=#{player["gote"]}"
 
@@ -527,14 +527,14 @@ at_grandma commands are:
 
 
 # -----------------------------------------------------------
-# 指定座標をbord座標に変換する
+# 指定座標をboard座標に変換する
 # -----------------------------------------------------------
 
-  convert_to_bord_coordinate = (coordinate) ->
-    bord_coordinate =
+  convert_to_board_coordinate = (coordinate) ->
+    board_coordinate =
       "x" : 10 - coordinate["x"] - 1
       "y" : coordinate["y"] - 1
-    return bord_coordinate
+    return board_coordinate
 
 
 # -----------------------------------------------------------
@@ -551,9 +551,9 @@ at_grandma commands are:
     # その場所に相手の駒があるか
     kind_of_aite_koma = bind[aite_teban]
     kind_of_my_koma = bind[teban]
-    bord_coordinate = convert_to_bord_coordinate(destination)
+    board_coordinate = convert_to_board_coordinate(destination)
     for koma_j, koma_e of kind_of_aite_koma
-      if (bord[bord_coordinate["y"]][bord_coordinate["x"]] == koma_e)
+      if (board[board_coordinate["y"]][board_coordinate["x"]] == koma_e)
         # 相手の駒の種類と自分の駒の種類の変換
         # 持ち駒変数への代入
         mochi.push(kind_of_my_koma[koma_j])
