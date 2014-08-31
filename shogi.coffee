@@ -209,9 +209,9 @@ at_grandma commands are:
 # 現在の棋譜を出力する
 # -----------------------------------------------------------
   robot.respond /shogi kifu/i, (msg) ->
-    if play == false
+    if player["sente"] == null || player["gote"] == null
       random_message([
-        "まだ誰も来ていないみたい。",
+        "試合は始まっていないわねぇ。",
         "対戦は始まっていないわ。",
         "席は空いているわよ。対局してみたらどう？",
       ], msg)
@@ -251,34 +251,41 @@ at_grandma commands are:
 # -----------------------------------------------------------
 
   robot.respond /shogi init/i, (msg) ->
-    if !(validate_user_name(msg))
+    if player["sente"] == null || player["gote"] == null
       random_message([
-        "この操作は、対戦中の▲#{player["sente"]}と△#{player["gote"]}しかできないのよ。",
-        "これは対戦中の▲#{player["sente"]}と△#{player["gote"]}しかできないの。ごめんねぇ。",
-        "対戦中の▲#{player["sente"]}と△#{player["gote"]}しかこの操作はできないの。",
+        "試合は始まっていないわねぇ。",
+        "対戦は始まっていないわ。",
+        "席は空いているわよ。対局してみたらどう？",
       ], msg)
-      return
-    play     = false
-    request  = false
-    player   =
-      "sente" : null
-      "gote"  : null
-    tesuu    = 0
-    mochi  = []
-    url      = ""
-    kifu     = []
-    board     = [
-      ["l","n","s","g","k","g","s","n","l"],
-      [" ","r"," "," "," "," "," ","b"," "],
-      ["p","p","p","p","p","p","p","p","p"],
-      [" "," "," "," "," "," "," "," "," "],
-      [" "," "," "," "," "," "," "," "," "],
-      [" "," "," "," "," "," "," "," "," "],
-      ["P","P","P","P","P","P","P","P","P"],
-      [" ","B"," "," "," "," "," ","R"," "],
-      ["L","N","S","G","K","G","S","N","L"]
-    ]
-    msg.send "すべて元に戻しましたよ。"
+    else
+      if !(validate_user_name_player(msg))
+        random_message([
+          "この操作は、対戦中の▲#{player["sente"]}と△#{player["gote"]}しかできないのよ。",
+          "これは対戦中の▲#{player["sente"]}と△#{player["gote"]}しかできないの。ごめんねぇ。",
+          "対戦中の▲#{player["sente"]}と△#{player["gote"]}しかこの操作はできないの。",
+        ], msg)
+        return
+      play     = false
+      request  = false
+      player   =
+        "sente" : null
+        "gote"  : null
+      tesuu    = 0
+      mochi  = []
+      url      = ""
+      kifu     = []
+      board     = [
+        ["l","n","s","g","k","g","s","n","l"],
+        [" ","r"," "," "," "," "," ","b"," "],
+        ["p","p","p","p","p","p","p","p","p"],
+        [" "," "," "," "," "," "," "," "," "],
+        [" "," "," "," "," "," "," "," "," "],
+        [" "," "," "," "," "," "," "," "," "],
+        ["P","P","P","P","P","P","P","P","P"],
+        [" ","B"," "," "," "," "," ","R"," "],
+        ["L","N","S","G","K","G","S","N","L"]
+      ]
+      msg.send "すべて元に戻しましたよ。"
 
 
 # -----------------------------------------------------------
@@ -286,11 +293,12 @@ at_grandma commands are:
 # -----------------------------------------------------------
 
   robot.respond /shogi ([0-9])([0-9])(.{1,2}) ([1-9])([1-9])(.)(|成)$/i, (msg) ->
-    if !(validate_user_name(msg))
+    if !(validate_user_name_teban(msg))
+      teban = get_teban()
       random_message([
-        "この操作は、対戦中の▲#{player["sente"]}と△#{player["gote"]}しかできないのよ。",
-        "これは対戦中の▲#{player["sente"]}と△#{player["gote"]}しかできないの。ごめんねぇ。",
-        "対戦中の▲#{player["sente"]}と△#{player["gote"]}しかこの操作はできないの。",
+        "この操作は、手番の#{player[teban]}しかできないのよ。",
+        "これは手番の#{player[teban]}しかできないの。ごめんねぇ。",
+        "手番の#{player[teban]}しかこの操作はできないの。",
       ], msg)
       return
     origin =
@@ -580,10 +588,10 @@ at_grandma commands are:
 
 
 # -----------------------------------------------------------
-# ユーザーネームバリデート
+# ユーザーネームバリデート（手番）
 # -----------------------------------------------------------
 
-  validate_user_name = (msg) ->
+  validate_user_name_teban = (msg) ->
     name = msg.message.user.name
     teban = get_teban()
     if teban == "sente"
@@ -596,6 +604,17 @@ at_grandma commands are:
         return true
       else
         return false
+    else
+      return false
+
+# -----------------------------------------------------------
+# ユーザーネームバリデート（対戦者）
+# -----------------------------------------------------------
+
+  validate_user_name_player = (msg) ->
+    name = msg.message.user.name
+    if name == player["sente"] || name == player["gote"]
+      return true
     else
       return false
 
