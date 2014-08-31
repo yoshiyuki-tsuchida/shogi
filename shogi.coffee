@@ -297,10 +297,10 @@ at_grandma commands are:
 # 指し手を進める
 # -----------------------------------------------------------
 
-  robot.respond /shogi ([0-9])([0-9])(.{1,2}) ([1-9])([1-9])(.)(|成)$/i, (msg) ->
+  robot.respond /shogi ([0-9])([0-9]) ([1-9])([1-9])(.)(|成)$/i, (msg) ->
     new_turn(msg)
 
-  robot.hear /^ags ([0-9])([0-9])(.{1,2}) ([1-9])([1-9])(.)(|成)$/i, (msg) ->
+  robot.hear /^ags ([0-9])([0-9]) ([1-9])([1-9])(.)(|成)$/i, (msg) ->
     new_turn(msg)
 
   new_turn = (msg) ->
@@ -315,12 +315,12 @@ at_grandma commands are:
     origin =
       "x" : msg.match[1]
       "y" : msg.match[2]
-      "k" : msg.match[3]
+      "k" : msg.match[5]
     destination =
-      "x" : msg.match[4]
-      "y" : msg.match[5]
-      "k" : msg.match[6]
-      "n" : msg.match[7]
+      "x" : msg.match[3]
+      "y" : msg.match[4]
+      "k" : msg.match[5]
+      "n" : msg.match[6]
 
     if is_possible_moving(origin, destination, msg)
       teban = get_teban()
