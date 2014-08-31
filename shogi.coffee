@@ -69,6 +69,12 @@ module.exports = (robot) ->
 # -----------------------------------------------------------
 
   robot.respond /help$/i, (msg) ->
+    help(msg)
+
+  robot.hear /^ag (help|h)$/i, (msg) ->
+    help(msg)
+
+  help = (msg) ->
     msg.send """
 ```
 
@@ -121,6 +127,12 @@ at_grandma commands are:
 # -----------------------------------------------------------
 
   robot.respond /shogi req/i, (msg) ->
+    new_request(msg)
+
+  robot.hear /^ags (req|re|r)/i, (msg) ->
+    new_request(msg)
+
+  new_request = (msg) ->
     if play == false
       if request == false
         player["sente"] = msg.message.user.name
@@ -150,6 +162,12 @@ at_grandma commands are:
 # -----------------------------------------------------------
 
   robot.respond /shogi ok/i, (msg) ->
+    ok_request(msg)
+
+  robot.hear /^ags (ok|o)$/i, (msg) ->
+    ok_request(msg)
+
+  ok_request = (msg) ->
     if play == false
       if request == false
         random_message([
@@ -180,6 +198,12 @@ at_grandma commands are:
 # -----------------------------------------------------------
 
   robot.respond /shogi board/i, (msg) ->
+    display_board(msg)
+
+  robot.hear /^ags (board|bo|b)$/i, (msg) ->
+    display_board(msg)
+
+  display_board = (msg) ->
     if play == false
       random_message([
         "まだ誰も来ていないみたい。",
@@ -198,7 +222,14 @@ at_grandma commands are:
 # -----------------------------------------------------------
 # 現在の棋譜を出力する
 # -----------------------------------------------------------
+
   robot.respond /shogi kifu/i, (msg) ->
+    display_kifu(msg)
+
+  robot.hear /^ags (kifu|ki|k)$/i, (msg) ->
+    display_kifu(msg)
+
+  display_kifu = (msg) ->
     if player["sente"] == null || player["gote"] == null
       random_message([
         "試合は始まっていないわねぇ。",
@@ -219,6 +250,12 @@ at_grandma commands are:
 # -----------------------------------------------------------
 
   robot.respond /shogi init/i, (msg) ->
+    all_init(msg)
+
+  robot.hear /^ags (init|ini|i)$/i, (msg) ->
+    all_init(msg)
+
+  all_init = (msg) ->
     if player["sente"] == null || player["gote"] == null
       random_message([
         "試合は始まっていないわねぇ。",
@@ -261,6 +298,12 @@ at_grandma commands are:
 # -----------------------------------------------------------
 
   robot.respond /shogi ([0-9])([0-9])(.{1,2}) ([1-9])([1-9])(.)(|成)$/i, (msg) ->
+    new_turn(msg)
+
+  robot.hear /^ags ([0-9])([0-9])(.{1,2}) ([1-9])([1-9])(.)(|成)$/i, (msg) ->
+    new_turn(msg)
+
+  new_turn = (msg) ->
     if !(validate_user_name_teban(msg))
       teban = get_teban()
       random_message([
@@ -315,7 +358,13 @@ at_grandma commands are:
 # -----------------------------------------------------------
 
   robot.respond /shogi help/i, (msg) ->
-    if play == false
+    shogi_help(msg)
+
+  robot.hear /^ags (help|h)$/i, (msg) ->
+    shogi_help(msg)
+
+  shogi_help = (msg) ->
+    if player["sente"] == null || player["gote"] == null
       random_message([
         "まだ誰も来ていないみたい。",
         "対戦は始まっていないわ。",
