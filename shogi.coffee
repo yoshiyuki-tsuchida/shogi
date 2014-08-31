@@ -65,16 +65,6 @@ module.exports = (robot) ->
 
 
 # -----------------------------------------------------------
-# LT end
-# -----------------------------------------------------------
-
-  robot.respond /lt end/i, (msg) ->
-    msg.send "ご清聴ありがとうございました。"
-    msg.send "http://cdn-ak.f.st-hatena.com/images/fotolife/y/yotsuya_step/20130326/20130326011914.jpg"
-    msg.send "来週もまた見てくださいね！"
-
-
-# -----------------------------------------------------------
 # help
 # -----------------------------------------------------------
 
@@ -223,28 +213,6 @@ at_grandma commands are:
         "▲#{player["sente"]}と△#{player["gote"]}の素晴らしい棋譜ねぇ。",
       ], msg)
 
-
-# -----------------------------------------------------------
-# 指定の場所にある駒を見る（デバッグ用）
-# -----------------------------------------------------------
-
-  # robot.respond /shogi check ([1-9])([1-9])/i, (msg) ->
-    # teban = get_teban()
-    # msg.send "手番は#{teban}です。"
-    # origin =
-      # "x" : msg.match[1]
-      # "y" : msg.match[2]
-    # kind_of_my_koma = bind[teban]
-    # msg.send "#{origin["x"]},#{origin["y"]}にある駒は・・・。"
-    # board_coordinate = convert_to_board_coordinate(origin)
-    # for koma_j, koma_e of kind_of_my_koma
-      # if (board[board_coordinate["y"]][board_coordinate["x"]] == koma_e)
-        # msg.send "#{origin["x"]},#{origin["y"]}にある駒は#{koma_e}です。"
-        # msg.send "手数は#{tesuu}です。"
-        # return
-      # else
-        # msg.send "ないですね。"
-        # return
 
 # -----------------------------------------------------------
 # すべてを初期化する
