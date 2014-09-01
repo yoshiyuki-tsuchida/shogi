@@ -68,7 +68,7 @@ module.exports = (robot) ->
 # help
 # -----------------------------------------------------------
 
-  robot.respond /help$/i, (msg) ->
+  robot.respond /(help|h)$/i, (msg) ->
     help(msg)
 
   robot.hear /^ag (help|h)$/i, (msg) ->
@@ -79,45 +79,54 @@ module.exports = (robot) ->
 ```
 
   ---------------------------------------------
-     Shogi on Slack Bot 'at_grandma' ver 0.1
+     Shogi on Slack Bot 'at_grandma' ver 0.2
   ---------------------------------------------
 
 at_grandma commands are:
 
-   shogi <command>
 
-      - req
-              対戦リクエストを発信する
+  at_grandma (help|h)
+  ag (help|h)
 
-      - ok
-              対戦リクエストを受け付ける
-
-      - board
-              現在の盤面情報を表示する
-
-      - kifu
-              直近の棋譜を表示する
-
-      - init
-              すべてを初期化する
-
-      - <持つ駒> <打つ駒>
-              動かしたい駒を持って、指定の場所に打つ
-              ex1) at_grandma shogi 77歩 76歩
-              ex2) at_grandma shogi 74歩 73歩成 （成る場合は「成」をつける）
-              ex3) at_grandma shogi 00金 52金   （持ち駒は00指定）
-
-      - help
-              最善手っぽいものを教えてくれる
+      このhelp
 
 
-   help
-         このhelp
+  at_grandma shogi <command>
+  ags <command>
+
+      - (req|re|r) [@user_name]
+                      対戦リクエストを発信する
+
+      - (ok|o)
+                      対戦リクエストを受け付ける
+
+      - (board|bo|b)
+                      現在の盤面情報を表示する
+
+      - (kifu|ki|k)
+                      直近の棋譜を表示する
+
+      - (init|ini|i)
+                      すべてを初期化する
+
+      - <持つ座標> <打つ座標><打つ駒>[成]
+                      動かしたい駒の座標を指定し、次に指定した場所に打つ
+                      ex1) ags 77 76歩
+                      ex2) ags 74 73歩成 （成る場合は「成」をつける）
+                      ex3) ags 00 52金   （持ち駒は00指定）
+
+      - (help|h)
+                      最善手っぽいものを教えてくれる
 
 
 使える駒：
 
       歩　と　香　杏　桂　圭　銀　全　金　角　馬　飛　龍　玉
+
+
+
+※注  このシステムはBonanzaとは一切関係ありません。
+     （いずれ関係は持ちたい）
 
 ```
 """
@@ -126,7 +135,7 @@ at_grandma commands are:
 # 新しい対戦を要求する
 # -----------------------------------------------------------
 
-  robot.respond /shogi req/i, (msg) ->
+  robot.respond /shogi (req|re|r)/i, (msg) ->
     new_request(msg)
 
   robot.hear /^ags (req|re|r)/i, (msg) ->
@@ -161,7 +170,7 @@ at_grandma commands are:
 # 要求中の対戦を受け付ける
 # -----------------------------------------------------------
 
-  robot.respond /shogi ok/i, (msg) ->
+  robot.respond /shogi (ok|o)$/i, (msg) ->
     ok_request(msg)
 
   robot.hear /^ags (ok|o)$/i, (msg) ->
@@ -197,7 +206,7 @@ at_grandma commands are:
 # 現在の局面を見る
 # -----------------------------------------------------------
 
-  robot.respond /shogi board/i, (msg) ->
+  robot.respond /shogi (board|bo|b)$/i, (msg) ->
     display_board(msg)
 
   robot.hear /^ags (board|bo|b)$/i, (msg) ->
@@ -223,7 +232,7 @@ at_grandma commands are:
 # 現在の棋譜を出力する
 # -----------------------------------------------------------
 
-  robot.respond /shogi kifu/i, (msg) ->
+  robot.respond /shogi (kifu|ki|k)$/i, (msg) ->
     display_kifu(msg)
 
   robot.hear /^ags (kifu|ki|k)$/i, (msg) ->
@@ -249,7 +258,7 @@ at_grandma commands are:
 # すべてを初期化する
 # -----------------------------------------------------------
 
-  robot.respond /shogi init/i, (msg) ->
+  robot.respond /shogi (init|ini|i)$/i, (msg) ->
     all_init(msg)
 
   robot.hear /^ags (init|ini|i)$/i, (msg) ->
@@ -357,7 +366,7 @@ at_grandma commands are:
 # 勝手に何か言ってくれる
 # -----------------------------------------------------------
 
-  robot.respond /shogi help/i, (msg) ->
+  robot.respond /shogi (help|h)$/i, (msg) ->
     shogi_help(msg)
 
   robot.hear /^ags (help|h)$/i, (msg) ->
