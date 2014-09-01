@@ -94,7 +94,7 @@ at_grandma commands are:
   at_grandma shogi <command>
   ags <command>
 
-      - (req|re|r) [@user_name]
+      - (req|re|r)
                       対戦リクエストを発信する
 
       - (ok|o)
